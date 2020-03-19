@@ -13,4 +13,4 @@ html_dir = os.path.join(resource_dir, "html")
 css_dir = os.path.join(resource_dir, "css")
 css_name = "github.css"
 css_path = os.path.join(css_dir, css_name)
-markdown_type = "gfm"
+markdown_type = "mdx_gfm"

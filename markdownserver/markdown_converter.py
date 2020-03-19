@@ -5,6 +5,7 @@ import markdown as md
 import codecs
 import sys
 import os
+from pathlib import Path
 from .env import css_path, ms_encoding, markdown_type, \
     html_dir, html_extension
 
@@ -16,6 +17,14 @@ class MarkdownConverter(object):
             """
             <html>
             <head>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script>
+            <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              config: ["MMLorHTML.js"],
+              jax: ["input/TeX", "output/HTML-CSS", "output/NativeMML"],
+              extensions: ["MathMenu.js", "MathZoom.js"]
+            });
+            </script>
             <style type='text/css'>
             <!--
             """
@@ -28,15 +37,30 @@ class MarkdownConverter(object):
             <div class='markdown-body'>
             """
         )
+        self.page_listing = "<ul>" + \
+                            "\n".join(
+                                ['<li><a href="{}">{}</li>'.format(f, f)
+                                 for f in self.get_child_files(os.getcwd())]) \
+                            + "</ul>"
+
         self.html_footer = """
+            <h1>Pages</h1>
+            {}
             </div>
             </body>
             </html>
-            """
+            """.format(self.page_listing)
 
     def convert(self, src, dst=""):
-        code = md.markdown(self.read_md(src), extensions=[markdown_type])
+        code = md.markdown(self.read_md(src), extensions=[markdown_type,
+                                                          'mdx_math'])
         return self.write_html(code, src, dst)
+
+    def get_child_files(self, dir):
+        all_md_files = sorted([
+            f.relative_to(dir) for f in Path(dir).rglob('*.md')],
+                          key=lambda x: x.parent)
+        return all_md_files
 
     def read_md(self, file_name):
         workingdir = os.getcwd()
@@ -60,6 +84,10 @@ class MarkdownConverter(object):
         html_file = codecs.open(html_path, encoding=ms_encoding, mode="w")
         html_file.write(self.html_header + body + self.html_footer)
         return html_path
+
+    def dir_listing(self, path):
+        html = self.html_header
+        return
 
 
 def main():
